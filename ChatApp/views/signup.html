@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h3>Sign Up</h3>
+    <form action="" onsubmit="postSignUp(event)">
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" placeholder="Enter Name" required>       
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" placeholder="Enter Email" required>
+        <label for="phone">Phone Number:</label>
+        <input type="tel" name="phone" id="phone" placeholder="Enter Phone Number" required>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" placeholder="********" required>       
+        <button type="submit">Sign Up</button>
+    </form>
+</body>
+<script>
+    function postSignUp(event) {
+        event.preventDefault();
+    }
+</script>
+</html>
