@@ -19,9 +19,30 @@
         <button type="submit">Sign Up</button>
     </form>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
 <script>
+    const api = 'http://localhost:1500/user';
     function postSignUp(event) {
         event.preventDefault();
+
+        const user = {
+            name: document.querySelector('#name').value,
+            email: document.querySelector('#email').value,
+            phone: document.querySelector('#phone').value,
+            password: document.querySelector('#password').value
+        };
+        
+        axios.post(`${api}/signup`, user)
+            .then(res => {
+                if (res.status === 201) {
+                    alert("Signup Successful");
+                }
+            })
+            .catch(err => {
+                console.log(err.response.data.Error);
+                
+            });
+
     }
 </script>
 </html>
