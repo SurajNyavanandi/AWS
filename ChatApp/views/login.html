@@ -38,8 +38,9 @@
             }
          })
          .catch((err)=>{
-         //   let data=JSON.stringify(err.response.data);
-          //  console.log(data);
+            let data=JSON.stringify(err.response.data);
+            document.write(data);
+            
             
          })
      }
