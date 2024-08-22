@@ -35,11 +35,11 @@
         axios.post(`${api}/signup`, user)
             .then(res => {
                 if (res.status === 201) {
-                    alert("Signup Successful");
+                    alert(res.data.Message);
                 }
             })
             .catch(err => {
-                console.log(err.response.data.Error);
+                alert(err.response.data.Error);
                 
             });
 

@@ -3,8 +3,16 @@ const sequelize = require('./config/database');
 const path = require('path');
 const bodyParser = require('body-parser');
 const userRouter = require('./routes/userRouter');
+const cors = require('cors');
+require('dotenv').config();
 const app=express();
 
+const corsOptions = {
+    origin: 'http://localhost:1500',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use('/user', userRouter);
 
