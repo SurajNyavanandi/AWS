@@ -13,3 +13,12 @@ exports.storeMessage = async (req, res) => {
         res.status(500).json({ error: 'Failed to store message' });
     }
 };
+exports.getMessages = async (req, res) => {
+    try {
+        const messages = await ChatMessage.findAll();
+        res.status(200).json(messages);
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+        res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+};

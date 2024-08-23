@@ -39,6 +39,23 @@
             messageDiv.textContent = `${sender}: ${message}`;
             document.getElementById('messages').appendChild(messageDiv);
         }
+        window.onload = function() {
+        fetchMessages();
+    };
+
+    function fetchMessages() {
+        axios.get(`${api}/messages`, {
+            headers: { 'Authorization': token }
+        })
+        .then(response => {
+            response.data.forEach(msg => {
+                displayMessage(msg.message, `User ${msg.userId}`);
+            });
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+    }
     </script>
 </body>
 </html>
