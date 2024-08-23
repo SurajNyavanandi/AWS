@@ -3,6 +3,7 @@ const sequelize = require('./config/database');
 const path = require('path');
 const bodyParser = require('body-parser');
 const userRouter = require('./routes/userRouter');
+const chatRouter = require('./routes/chatRouter');
 const cors = require('cors');
 require('dotenv').config();
 const app=express();
@@ -16,6 +17,7 @@ app.use(cors());
 // app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use('/user', userRouter);
+app.use('/chat', chatRouter);
 
 app.get('/signup',(req,res)=>{
     res.sendFile(path.join(__dirname,'views','signup.html'));
