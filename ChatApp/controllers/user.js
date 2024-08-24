@@ -19,7 +19,6 @@ exports.createUser = async (req, res) => {
         return res.status(201).json({ user, Message: 'Successfully Signed up' });
     } catch (error) {
         await t.rollback();
-        console.error('Error Signing Up User:', error);
         return res.status(500).json({ Error: 'Error Signing Up User' });
     }
 };

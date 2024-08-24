@@ -7,12 +7,21 @@
 </head>
 <body>
     <h1>Chat App</h1>
+
+    <span>
+        <h3 style="margin-bottom: 0;">Users</h3>
+        <div id="userList"></div>
+    </span>
+
     <div id="chatWindow">
+        <h3 style="margin-bottom: 0;">Messages</h3>
         <div id="messages"></div>
     </div>
+
     <input type="text" id="messageInput" placeholder="Type a message...">
     <button onclick="sendMessage()">Send</button>
-
+    
+</body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
     <script>
         const api = 'http://localhost:1500/chat';
@@ -39,15 +48,13 @@
             messageDiv.textContent = `${sender}: ${message}`;
             document.getElementById('messages').appendChild(messageDiv);
         }
-        window.onload = function() {
-        fetchMessages();
-    };
-
     function fetchMessages() {
         axios.get(`${api}/messages`, {
             headers: { 'Authorization': token }
         })
         .then(response => {
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML = ''; //clearing container
             response.data.forEach(msg => {
                 displayMessage(msg.message, `User ${msg.userId}`);
             });
@@ -56,6 +63,31 @@
             console.error(error.response.data);
         });
     }
+    function fetchUsers() {
+        axios.get(`${api}/users`, {
+            headers: { 'Authorization': token }
+        })
+        .then(response => {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+            response.data.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.textContent = user.name;
+                userDiv.style.display = 'inline-block'; 
+                userDiv.style.marginRight = '10px'; 
+                userList.appendChild(userDiv);
+            });
+        })
+        .catch(error => {
+            console.error(error.response.data);
+        });
+    }        
+        
+        window.onload = function() {
+        fetchMessages();
+        fetchUsers();
+        setInterval(fetchMessages, 1000); 
+       };
     </script>
-</body>
+
 </html>

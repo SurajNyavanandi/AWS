@@ -1,4 +1,5 @@
 const ChatMessage = require('../models/chatModel');
+const User = require('../models/userModel');
 
 exports.storeMessage = async (req, res) => {
     try {
@@ -9,7 +10,6 @@ exports.storeMessage = async (req, res) => {
 
         res.status(201).json({ message: chatMessage.message });
     } catch (error) {
-        console.error('Error storing message:', error);
         res.status(500).json({ error: 'Failed to store message' });
     }
 };
@@ -18,7 +18,14 @@ exports.getMessages = async (req, res) => {
         const messages = await ChatMessage.findAll();
         res.status(200).json(messages);
     } catch (error) {
-        console.error('Error fetching messages:', error);
         res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+};
+exports.getUsers = async (req, res) => {
+    try {
+        const users = await User.findAll({ attributes: ['id', 'name'] });
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch users' });
     }
 };

@@ -8,6 +8,7 @@ const cors = require('cors');
 require('dotenv').config();
 const app=express();
 
+// Middleware
 app.use(cors());
 // const corsOptions = {
 //     origin: 'http://localhost:1500',
@@ -19,6 +20,8 @@ app.use(bodyParser.json());
 app.use('/user', userRouter);
 app.use('/chat', chatRouter);
 
+
+// Serve HTML files
 app.get('/signup',(req,res)=>{
     res.sendFile(path.join(__dirname,'views','signup.html'));
 })
@@ -28,9 +31,11 @@ app.get('/login',(req,res)=>{
 app.get('/chat',(req,res)=>{
     res.sendFile(path.join(__dirname,'views','chat.html'));
 })
+
+//Sync with DB
 sequelize.sync()
     .then(() => {
         console.log("Database Connected");
-        app.listen(1500, () => console.log("Server running on http://localhost:1500/signup"));
+        app.listen(1500, () => console.log("Server running on http://localhost:1500/login"));
     })
     .catch(err => console.log("Database Not-Connected", err));

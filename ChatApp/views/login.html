@@ -32,7 +32,8 @@
          .then((res)=>{
             clearInputs();
             alert("Login Successful");
-           // console.log("res data",res.data);  
+           // console.log("res data",res.data); 
+           localStorage.setItem('token', res.data.token);
             if(res.status===200){
                 window.location.href=`http://localhost:1500/chat`;
             }

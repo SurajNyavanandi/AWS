@@ -5,5 +5,5 @@ const router = express.Router();
 
 router.post('/send', verifyToken, chatController.storeMessage);
 router.get('/messages', verifyToken, chatController.getMessages);
-
+router.get('/users', verifyToken, chatController.getUsers);
 module.exports = router;
