@@ -4,10 +4,10 @@ const { Sequelize, Op } = require('sequelize');
 
 exports.storeMessage = async (req, res) => {
     try {
-        const { message } = req.body;
+        const { message, groupId  } = req.body;
         const userId = req.userId; 
 
-        const chatMessage = await ChatMessage.create({ userId, message });
+        const chatMessage = await ChatMessage.create({ userId, message, groupId });
 
         res.status(201).json({ message: chatMessage.message });
     } catch (error) {
@@ -16,11 +16,12 @@ exports.storeMessage = async (req, res) => {
 };
 exports.getMessages = async (req, res) => {
     try {
-        const lastId = req.query.lastId || 0;
+        const { lastId = 0, groupId } = req.query;
         const messages = await ChatMessage.findAll({
             where: {
                 id: {
-                    [Sequelize.Op.gt]: lastId //  Fetch only messages with ID greater than lastId
+                    [Sequelize.Op.gt]: lastId ,//  Fetch only messages with ID greater than lastId
+                    groupId
                 }
             }
         });
