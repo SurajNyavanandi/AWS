@@ -1,5 +1,6 @@
 const ChatMessage = require('../models/chatModel');
 const User = require('../models/userModel');
+const { Sequelize, Op } = require('sequelize');
 
 exports.storeMessage = async (req, res) => {
     try {
@@ -15,7 +16,14 @@ exports.storeMessage = async (req, res) => {
 };
 exports.getMessages = async (req, res) => {
     try {
-        const messages = await ChatMessage.findAll();
+        const lastId = req.query.lastId || 0;
+        const messages = await ChatMessage.findAll({
+            where: {
+                id: {
+                    [Sequelize.Op.gt]: lastId //  Fetch only messages with ID greater than lastId
+                }
+            }
+        });
         res.status(200).json(messages);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch messages' });

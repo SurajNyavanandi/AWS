@@ -26,6 +26,7 @@
     <script>
         const api = 'http://localhost:1500/chat';
         const token = localStorage.getItem('token');
+        let lastMessageId = localStorage.getItem('lastMessageId') || 0;
 
         function sendMessage() {
             const message = document.getElementById('messageInput').value;
@@ -35,6 +36,8 @@
                 headers: { 'Authorization': token }
             })
             .then(response => {
+                //Store the message locally
+                storeMessage(response.data.message, 'You', response.data.id);
                 displayMessage(response.data.message, 'You');
                 document.getElementById('messageInput').value = '';
             })
@@ -48,16 +51,28 @@
             messageDiv.textContent = `${sender}: ${message}`;
             document.getElementById('messages').appendChild(messageDiv);
         }
+        function storeMessage(message, sender, messageId) {
+        let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+        chatHistory.push({ sender, message, id: messageId });
+        if (chatHistory.length > 10) {
+            chatHistory.shift(); // Keep only recent 10 messages
+        }
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+        localStorage.setItem('lastMessageId', messageId);
+    }
+
     function fetchMessages() {
-        axios.get(`${api}/messages`, {
+        axios.get(`${api}/messages?lastId=${lastMessageId}`, {
             headers: { 'Authorization': token }
         })
         .then(response => {
-            const messagesContainer = document.getElementById('messages');
-            messagesContainer.innerHTML = ''; //clearing container
             response.data.forEach(msg => {
+                //Store new messages locally
+                storeMessage(msg.message, `User ${msg.userId}`, msg.id);
                 displayMessage(msg.message, `User ${msg.userId}`);
             });
+            lastMessageId = response.data.length ? response.data[response.data.length - 1].id : lastMessageId;
+            localStorage.setItem('lastMessageId', lastMessageId);
         })
         .catch(error => {
             console.error(error.response.data);
@@ -81,9 +96,12 @@
         .catch(error => {
             console.error(error.response.data);
         });
-    }        
-        
+    }              
         window.onload = function() {
+        const storedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
+        storedMessages.forEach(msg => {
+            displayMessage(msg.message, msg.sender);
+        });
         fetchMessages();
         fetchUsers();
         setInterval(fetchMessages, 1000); 
