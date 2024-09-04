@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SignUp</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <h3>Sign Up</h3>
@@ -23,27 +24,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
 <script>
     const api = 'http://localhost:1500/user';
+
     function postSignUp(event) {
         event.preventDefault();
-
         const user = {
-            name: document.querySelector('#name').value,
-            email: document.querySelector('#email').value,
-            phone: document.querySelector('#phone').value,
-            password: document.querySelector('#password').value
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            password: document.getElementById('password').value
         };
-        
         axios.post(`${api}/signup`, user)
-            .then(res => {
-                if (res.status === 201) {
-                    alert(res.data.Message);
-                }
+            .then(response => {
+                window.location.href = '/login';
             })
-            .catch(err => {
-                alert(err.response.data.Error);
-                
+            .catch(error => {
+                console.log(error);
             });
-
-    }
+    };
+    
 </script>
 </html>

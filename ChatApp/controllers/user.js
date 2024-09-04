@@ -1,7 +1,8 @@
-const User = require('../models/userModel');
+const User = require('../models/user');
 const bcrypt = require('bcrypt');
 const sequelize = require('../config/database');
-const jwt=require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 exports.createUser = async (req, res) => {
     const t = await sequelize.transaction();
@@ -12,6 +13,7 @@ exports.createUser = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ Error: 'User already exists, Please Login' });
         }
+
         const hashPassword = await bcrypt.hash(password, 10);
         const user = await User.create({ name, email, phone, password: hashPassword }, { transaction: t });
 
@@ -22,10 +24,11 @@ exports.createUser = async (req, res) => {
         return res.status(500).json({ Error: 'Error Signing Up User' });
     }
 };
+
 exports.createLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ where: { email: email } });
+        const user = await User.findOne({ where: { email } });
 
         if (!user) {
             return res.status(404).json({ Error: 'User not found' });
@@ -36,10 +39,36 @@ exports.createLogin = async (req, res) => {
             return res.status(401).json({ Error: 'Incorrect Password' });
         }
 
-        const token = jwt.sign({ id: user.id }, 'secretchat@key');
-        return res.status(200).json({ Message: 'Login Successful',token});
+        await user.update({ isLoggedIn: true });
 
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
+        return res.status(200).json({ Message: 'Login Successful', token });
     } catch (error) {
         return res.status(500).json({ Error: 'Error creating login details' });
     }
-}
+};
+
+exports.getLoggedInUsers = async (req, res) => {
+    try {
+        const loggedInUsers = await User.findAll({ where: { isLoggedIn: true }, attributes: ['id', 'name'] });
+        res.json(loggedInUsers);
+    } catch (error) {
+        res.status(500).json({ Error: 'Error fetching logged-in users' });
+    }
+};
+
+exports.logout = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+            return res.status(404).json({ Error: 'User not found' });
+        }
+
+        await user.update({ isLoggedIn: false });
+        res.status(200).json({ Message: 'Logout successful' });
+    } catch (error) {
+        res.status(500).json({ Error: 'Error logging out' });
+    }
+};

@@ -5,52 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="style.css">
-
 </head>
 <body>
     <h3>Login</h3>
     <form action="" onsubmit="postLogin(event)">
-      <label for="email">Email :</label>
-      <input type="email" name="email" id="email" placeholder="Enter Email" required>
-      <label for="password">Password :</label>
-      <input type="password" name="password" id="password" placeholder="********" required>
-      <button type="submit">Login</button>
-    </form>    
-    <a href="http://localhost:1500/signup">New User ---Sign Up</a>
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" placeholder="Enter Email" required>
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" placeholder="********" required>       
+        <button type="submit">Login</button>
+    </form>
+    <a href="http://localhost:1500/signup">New User---Signup</a>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
 <script>
-     const api = 'http://localhost:1500/user';
-     function postLogin(event){
+    const api = 'http://localhost:1500/user';
+
+    function postLogin(event) {
         event.preventDefault();
+        const user = {
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value
+        };
+        axios.post(`${api}/login`, user)
+            .then(response => {
+                localStorage.setItem('token', response.data.token);
+                window.location.href = '/chat';
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    };
 
-        let userLogin={
-        email:document.querySelector('#email').value,
-        password:document.querySelector('#password').value
-           }
-    axios.post(`${api}/login`,userLogin)
-         .then((res)=>{
-            clearInputs();
-            alert("Login Successful");
-           // console.log("res data",res.data); 
-           localStorage.setItem('token', res.data.token);
-            if(res.status===200){
-                window.location.href=`http://localhost:1500/chat`;
-            }
-         })
-         .catch((err)=>{
-            let data=JSON.stringify(err.response.data);
-            document.write(data);
-            
-            
-         })
-     }
-     function clearInputs(){
-        document.querySelector('#email').value='';
-        document.querySelector('#password').value='';
-      }
-
-
-    
 </script>
 </html>

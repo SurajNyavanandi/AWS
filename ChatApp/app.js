@@ -1,38 +1,29 @@
-const express=require('express');
+const express = require('express');
 const sequelize = require('./config/database');
 const path = require('path');
 const bodyParser = require('body-parser');
-const userRouter = require('./routes/userRouter');
-const chatRouter = require('./routes/chatRouter');
+const userRouter = require('./routes/user');
+const groupRoutes = require('./routes/group');
 const cors = require('cors');
 require('dotenv').config();
-const app=express();
+const app = express();
 
-// Middleware
 app.use(cors());
-// const corsOptions = {
-//     origin: 'http://localhost:1500',
-//     methods: ['GET', 'POST'],
-//     allowedHeaders: ['Content-Type', 'Authorization']
-// };
-// app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use('/user', userRouter);
-app.use('/chat', chatRouter);
+app.use('/group', groupRoutes);
 
+app.use(express.static(path.join(__dirname, 'views')));
+app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'signup.html'));
+});
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'login.html'));
+});
+app.get('/chat', (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'chat.html'));
+});
 
-// Serve HTML files
-app.get('/signup',(req,res)=>{
-    res.sendFile(path.join(__dirname,'views','signup.html'));
-})
-app.get('/login',(req,res)=>{
-    res.sendFile(path.join(__dirname,'views','login.html'));
-})
-app.get('/chat',(req,res)=>{
-    res.sendFile(path.join(__dirname,'views','chat.html'));
-})
-
-//Sync with DB
 sequelize.sync()
     .then(() => {
         console.log("Database Connected");

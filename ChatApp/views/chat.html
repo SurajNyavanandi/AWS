@@ -1,111 +1,168 @@
+<!-- views/chat.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
+    <link rel="stylesheet" href="chat.css">
 </head>
 <body>
-    <h1>Chat App</h1>
-
-    <span>
-        <h3 style="margin-bottom: 0;">Users</h3>
-        <div id="userList"></div>
-    </span>
-
-    <div id="chatWindow">
-        <h3 style="margin-bottom: 0;">Messages</h3>
-        <div id="messages"></div>
+    <div class="container">
+        <!-- Sidebar with online users and groups -->
+        <aside class="sidebar">
+            <div class="header">
+                <h1>Chat App</h1>
+            </div>
+            <div class="users-cont">
+                <h3>Online Users</h3>
+                <div id="users" class="users-list">
+                </div>
+            </div>
+            <div class="groups-cont">
+                <h3>Groups</h3>
+                <div class="group-buttons">
+                    <button onclick="createGroup()">Create Group</button>
+                    <button onclick="viewGroups()">View Groups</button>
+                    <button onclick="addUserToGroup()">Add User to Group</button>
+                </div>
+                <div id="groups" class="groups-list"></div>
+            </div>
+            <button onclick="logout()">Logout</button>
+        </aside>
+        <main class="chat-cont">
+            <div class="msg-cont" id="msg-cont">
+            </div>
+            <div class="input-cont">
+                <input type="text" id="msg-input" placeholder="Type your message...">
+                <input type="submit" value="Send" onclick="sendMessage()">
+            </div>
+        </main>
     </div>
-
-    <input type="text" id="messageInput" placeholder="Type a message...">
-    <button onclick="sendMessage()">Send</button>
-    
-</body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
     <script>
-        const api = 'http://localhost:1500/chat';
         const token = localStorage.getItem('token');
-        let lastMessageId = localStorage.getItem('lastMessageId') || 0;
-
-        function sendMessage() {
-            const message = document.getElementById('messageInput').value;
-            if (message.trim() === '') return;
-
-            axios.post(`${api}/send`, { message }, {
+        function fetchLoggedInUsers() {
+            axios.get('http://localhost:1500/user/logged-in-users')
+                .then(response => {
+                    const usersList = document.getElementById('users');
+                    usersList.innerHTML = ''; 
+                    response.data.forEach(user => {
+                        const userElement = document.createElement('div');
+                        userElement.classList.add('user');
+                        userElement.textContent = user.name;
+                        usersList.appendChild(userElement);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching logged-in users:', error);
+                });
+        }
+        function logout() {
+            axios.post('http://localhost:1500/user/logout', {}, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
-                //Store the message locally
-                storeMessage(response.data.message, 'You', response.data.id);
-                displayMessage(response.data.message, 'You');
-                document.getElementById('messageInput').value = '';
+                localStorage.removeItem('token');
+                window.location.href = '/login';
             })
             .catch(error => {
-                console.error(error.response.data);
+                console.error('Error logging out:', error);
             });
         }
+        function sendMessage() {
+            const msg = document.querySelector('#msg-input').value;
+            axios.post('http://localhost:1500/user/publicgroup', { message: msg }, {
+                headers: { 'Authorization': token }
+            })
+            .then(response => {
+                document.querySelector('#msg-input').value = ''; 
+                fetchMessages();
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
+        }
+        function fetchMessages() {
+            axios.get('http://localhost:1500/user/publicgroup', {
+                headers: { 'Authorization': token }
+            })
+            .then(response => {
+                const msgContainer = document.getElementById('msg-cont');
+                msgContainer.innerHTML = '';
+                response.data.forEach(msg => {
+                    const msgElement = document.createElement('div');
+                    msgElement.classList.add('message');
+                    msgElement.innerHTML = `<strong>${msg.User.name}:</strong> ${msg.message}`;
+                    msgContainer.appendChild(msgElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching messages:', error);
+            });
+        }
+        //window.onload = fetchLoggedInUsers;
+        setInterval(fetchLoggedInUsers, 5000); 
+        setInterval(fetchMessages, 1000);
 
-        function displayMessage(message, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.textContent = `${sender}: ${message}`;
-            document.getElementById('messages').appendChild(messageDiv);
+        function createGroup() {
+        const groupName = prompt('Enter group name:');
+        if (groupName) {
+            axios.post('http://localhost:1500/group/create', { name: groupName }, {
+                headers: { 'Authorization': token }
+            })
+            .then(response => {
+                alert('Group created successfully');
+                viewGroups(); 
+            })
+            .catch(error => {
+                console.error('Error creating group:', error);
+                alert('Failed to create group');
+            });
         }
-        function storeMessage(message, sender, messageId) {
-        let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
-        chatHistory.push({ sender, message, id: messageId });
-        if (chatHistory.length > 10) {
-            chatHistory.shift(); // Keep only recent 10 messages
-        }
-        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
-        localStorage.setItem('lastMessageId', messageId);
     }
+    function addUserToGroup() {
+        const email = prompt('Enter the user\'s email:');
+        const groupId = prompt('Enter the group ID:');
 
-    function fetchMessages() {
-        axios.get(`${api}/messages?lastId=${lastMessageId}`, {
-            headers: { 'Authorization': token }
-        })
-        .then(response => {
-            response.data.forEach(msg => {
-                //Store new messages locally
-                storeMessage(msg.message, `User ${msg.userId}`, msg.id);
-                displayMessage(msg.message, `User ${msg.userId}`);
+        if (email && groupId) {
+            axios.post('http://localhost:1500/group/add-user', { email, groupId }, {
+                headers: { 'Authorization': token }
+            })
+            .then(response => {
+                alert(response.data.message);
+            })
+            .catch(error => {
+                console.error('Error adding user to group:', error);
+                alert('Failed to add user to group');
             });
-            lastMessageId = response.data.length ? response.data[response.data.length - 1].id : lastMessageId;
-            localStorage.setItem('lastMessageId', lastMessageId);
-        })
-        .catch(error => {
-            console.error(error.response.data);
-        });
+        }
     }
-    function fetchUsers() {
-        axios.get(`${api}/users`, {
-            headers: { 'Authorization': token }
-        })
-        .then(response => {
-            const userList = document.getElementById('userList');
-            userList.innerHTML = '';
-            response.data.forEach(user => {
-                const userDiv = document.createElement('div');
-                userDiv.textContent = user.name;
-                userDiv.style.display = 'inline-block'; 
-                userDiv.style.marginRight = '10px'; 
-                userList.appendChild(userDiv);
+function viewGroups() {
+    axios.get('http://localhost:1500/group/user-groups', {
+        headers: { 'Authorization': token }
+    })
+    .then(response => {
+        const groups = response.data;
+        const groupsContainer = document.getElementById('groups');
+        groupsContainer.innerHTML = ''; 
+
+        if (groups.message) {
+            groupsContainer.innerHTML = `<p>${groups.message}</p>`;
+        } else {
+            groups.forEach(group => {
+                const groupElement = document.createElement('div');
+                groupElement.classList.add('group');
+                groupElement.innerHTML = `<strong>${group.name}</strong>`;
+                groupsContainer.appendChild(groupElement);
             });
-        })
-        .catch(error => {
-            console.error(error.response.data);
-        });
-    }              
-        window.onload = function() {
-        const storedMessages = JSON.parse(localStorage.getItem('chatHistory')) || [];
-        storedMessages.forEach(msg => {
-            displayMessage(msg.message, msg.sender);
-        });
-        fetchMessages();
-        fetchUsers();
-        setInterval(fetchMessages, 1000); 
-       };
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching groups:', error);
+    });
+}
+
     </script>
-
+</body>
 </html>

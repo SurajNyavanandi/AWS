@@ -1,19 +1,12 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const User = require('./user');
 
-const ChatMessage = sequelize.define('ChatMessage', {
+const PublicGroup = sequelize.define('PublicGroup', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-    },
-    userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    groupId: {  //new column
-        type: DataTypes.INTEGER,
-        allowNull: false,
     },
     message: {
         type: DataTypes.STRING,
@@ -21,4 +14,7 @@ const ChatMessage = sequelize.define('ChatMessage', {
     }
 });
 
-module.exports = ChatMessage;
+PublicGroup.belongsTo(User);  
+User.hasMany(PublicGroup);    
+
+module.exports = PublicGroup;
