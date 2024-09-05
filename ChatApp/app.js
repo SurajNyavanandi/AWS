@@ -23,10 +23,10 @@ app.get('/login', (req, res) => {
 app.get('/chat', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'chat.html'));
 });
-
+//{force:true}
 sequelize.sync()
     .then(() => {
         console.log("Database Connected");
-        app.listen(1500, () => console.log("Server running on http://localhost:1500/login"));
+        app.listen(1500, () => console.log("Server running on http://34.229.202.94:1500/login"));
     })
     .catch(err => console.log("Database Not-Connected", err));

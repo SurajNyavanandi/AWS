@@ -43,7 +43,7 @@
     <script>
         const token = localStorage.getItem('token');
         function fetchLoggedInUsers() {
-            axios.get('http://localhost:1500/user/logged-in-users')
+            axios.get('http://34.229.202.94:1500/user/logged-in-users')
                 .then(response => {
                     const usersList = document.getElementById('users');
                     usersList.innerHTML = ''; 
@@ -59,7 +59,7 @@
                 });
         }
         function logout() {
-            axios.post('http://localhost:1500/user/logout', {}, {
+            axios.post('http://34.229.202.94:1500/user/logout', {}, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
@@ -72,7 +72,7 @@
         }
         function sendMessage() {
             const msg = document.querySelector('#msg-input').value;
-            axios.post('http://localhost:1500/user/publicgroup', { message: msg }, {
+            axios.post('http://34.229.202.94:1500/user/publicgroup', { message: msg }, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
@@ -84,7 +84,7 @@
             });
         }
         function fetchMessages() {
-            axios.get('http://localhost:1500/user/publicgroup', {
+            axios.get('http://34.229.202.94:1500/user/publicgroup', {
                 headers: { 'Authorization': token }
             })
             .then(response => {
@@ -108,7 +108,7 @@
         function createGroup() {
         const groupName = prompt('Enter group name:');
         if (groupName) {
-            axios.post('http://localhost:1500/group/create', { name: groupName }, {
+            axios.post('http://34.229.202.94:1500/group/create', { name: groupName }, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
@@ -126,7 +126,7 @@
         const groupId = prompt('Enter the group ID:');
 
         if (email && groupId) {
-            axios.post('http://localhost:1500/group/add-user', { email, groupId }, {
+            axios.post('http://34.229.202.94:1500/group/add-user', { email, groupId }, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
@@ -139,7 +139,7 @@
         }
     }
 function viewGroups() {
-    axios.get('http://localhost:1500/group/user-groups', {
+    axios.get('http://34.229.202.94:1500/group/user-groups', {
         headers: { 'Authorization': token }
     })
     .then(response => {
