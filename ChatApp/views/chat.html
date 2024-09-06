@@ -1,4 +1,3 @@
-<!-- views/chat.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,15 +8,13 @@
 </head>
 <body>
     <div class="container">
-        <!-- Sidebar with online users and groups -->
         <aside class="sidebar">
             <div class="header">
                 <h1>Chat App</h1>
             </div>
             <div class="users-cont">
                 <h3>Online Users</h3>
-                <div id="users" class="users-list">
-                </div>
+                <div id="users" class="users-list"></div>
             </div>
             <div class="groups-cont">
                 <h3>Groups</h3>
@@ -31,19 +28,48 @@
             <button onclick="logout()">Logout</button>
         </aside>
         <main class="chat-cont">
-            <div class="msg-cont" id="msg-cont">
-            </div>
+            <div class="msg-cont" id="msg-cont"></div>
             <div class="input-cont">
                 <input type="text" id="msg-input" placeholder="Type your message...">
                 <input type="submit" value="Send" onclick="sendMessage()">
             </div>
         </main>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
         const token = localStorage.getItem('token');
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('newMessage', (message) => {
+            const msgContainer = document.getElementById('msg-cont');
+            const msgElement = document.createElement('div');
+            msgElement.classList.add('message');
+            msgElement.innerHTML = `<strong>${message.User.name}:</strong> ${message.message}`;
+            msgContainer.appendChild(msgElement);
+        });
+
+        function sendMessage() {
+            const msg = document.querySelector('#msg-input').value;
+            axios.post('http://localhost:1500/user/publicgroup', { message: msg }, {
+                headers: { 'Authorization': token }
+            })
+            .then(response => {
+                document.querySelector('#msg-input').value = '';
+                socket.emit('sendMessage', response.data.newMessage);
+            })
+            .catch(error => {
+                console.error('Error sending message:', error);
+            });
+        }
+
         function fetchLoggedInUsers() {
-            axios.get('http://34.229.202.94:1500/user/logged-in-users')
+            axios.get('http://localhost:1500/user/logged-in-users')
                 .then(response => {
                     const usersList = document.getElementById('users');
                     usersList.innerHTML = ''; 
@@ -58,8 +84,51 @@
                     console.error('Error fetching logged-in users:', error);
                 });
         }
+
+        function createGroup() {
+            const groupName = prompt('Enter group name:');
+            if (groupName) {
+                axios.post('http://localhost:1500/group/create', { name: groupName }, {
+                    headers: { 'Authorization': token }
+                })
+                .then(response => {
+                    alert('Group created successfully');
+                    viewGroups(); 
+                })
+                .catch(error => {
+                    console.error('Error creating group:', error);
+                    alert('Failed to create group');
+                });
+            }
+        }
+
+        function viewGroups() {
+            axios.get('http://localhost:1500/group/user-groups', {
+                headers: { 'Authorization': token }
+            })
+            .then(response => {
+                const groups = response.data;
+                const groupsContainer = document.getElementById('groups');
+                groupsContainer.innerHTML = ''; 
+
+                if (groups.message) {
+                    groupsContainer.innerHTML = `<p>${groups.message}</p>`;
+                } else {
+                    groups.forEach(group => {
+                        const groupElement = document.createElement('div');
+                        groupElement.classList.add('group');
+                        groupElement.innerHTML = `<strong>${group.name}</strong>`;
+                        groupsContainer.appendChild(groupElement);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching groups:', error);
+            });
+        }
+
         function logout() {
-            axios.post('http://34.229.202.94:1500/user/logout', {}, {
+            axios.post('http://localhost:1500/user/logout', {}, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
@@ -70,99 +139,8 @@
                 console.error('Error logging out:', error);
             });
         }
-        function sendMessage() {
-            const msg = document.querySelector('#msg-input').value;
-            axios.post('http://34.229.202.94:1500/user/publicgroup', { message: msg }, {
-                headers: { 'Authorization': token }
-            })
-            .then(response => {
-                document.querySelector('#msg-input').value = ''; 
-                fetchMessages();
-            })
-            .catch(error => {
-                console.error('Error sending message:', error);
-            });
-        }
-        function fetchMessages() {
-            axios.get('http://34.229.202.94:1500/user/publicgroup', {
-                headers: { 'Authorization': token }
-            })
-            .then(response => {
-                const msgContainer = document.getElementById('msg-cont');
-                msgContainer.innerHTML = '';
-                response.data.forEach(msg => {
-                    const msgElement = document.createElement('div');
-                    msgElement.classList.add('message');
-                    msgElement.innerHTML = `<strong>${msg.User.name}:</strong> ${msg.message}`;
-                    msgContainer.appendChild(msgElement);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching messages:', error);
-            });
-        }
-        //window.onload = fetchLoggedInUsers;
-        setInterval(fetchLoggedInUsers, 5000); 
-        setInterval(fetchMessages, 1000);
 
-        function createGroup() {
-        const groupName = prompt('Enter group name:');
-        if (groupName) {
-            axios.post('http://34.229.202.94:1500/group/create', { name: groupName }, {
-                headers: { 'Authorization': token }
-            })
-            .then(response => {
-                alert('Group created successfully');
-                viewGroups(); 
-            })
-            .catch(error => {
-                console.error('Error creating group:', error);
-                alert('Failed to create group');
-            });
-        }
-    }
-    function addUserToGroup() {
-        const email = prompt('Enter the user\'s email:');
-        const groupId = prompt('Enter the group ID:');
-
-        if (email && groupId) {
-            axios.post('http://34.229.202.94:1500/group/add-user', { email, groupId }, {
-                headers: { 'Authorization': token }
-            })
-            .then(response => {
-                alert(response.data.message);
-            })
-            .catch(error => {
-                console.error('Error adding user to group:', error);
-                alert('Failed to add user to group');
-            });
-        }
-    }
-function viewGroups() {
-    axios.get('http://34.229.202.94:1500/group/user-groups', {
-        headers: { 'Authorization': token }
-    })
-    .then(response => {
-        const groups = response.data;
-        const groupsContainer = document.getElementById('groups');
-        groupsContainer.innerHTML = ''; 
-
-        if (groups.message) {
-            groupsContainer.innerHTML = `<p>${groups.message}</p>`;
-        } else {
-            groups.forEach(group => {
-                const groupElement = document.createElement('div');
-                groupElement.classList.add('group');
-                groupElement.innerHTML = `<strong>${group.name}</strong>`;
-                groupsContainer.appendChild(groupElement);
-            });
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching groups:', error);
-    });
-}
-
+        window.onload = fetchLoggedInUsers;
     </script>
 </body>
 </html>

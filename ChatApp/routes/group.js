@@ -4,7 +4,7 @@ const verifyToken = require('../middleware/auth');
 const groupController = require('../controllers/group');
 
 router.post('/create', verifyToken, groupController.createGroup);
-router.post('/add-user', verifyToken, groupController.addUserToGroup); // Add user to group
-router.get('/user-groups', verifyToken, groupController.getUserGroups); // View groups user is part of
+router.post('/add-user', verifyToken, groupController.addUserToGroup); 
+router.get('/user-groups', verifyToken, groupController.getUserGroups); 
 
 module.exports = router;

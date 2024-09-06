@@ -5,8 +5,17 @@ const bodyParser = require('body-parser');
 const userRouter = require('./routes/user');
 const groupRoutes = require('./routes/group');
 const cors = require('cors');
+const http = require('http'); 
+const { Server } = require('socket.io');
 require('dotenv').config();
+
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+    }
+});
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -23,10 +32,20 @@ app.get('/login', (req, res) => {
 app.get('/chat', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'chat.html'));
 });
-//{force:true}
-sequelize.sync()
-    .then(() => {
-        console.log("Database Connected");
-        app.listen(1500, () => console.log("Server running on http://34.229.202.94:1500/login"));
-    })
-    .catch(err => console.log("Database Not-Connected", err));
+
+// Socket.io event handling
+io.on('connection', (socket) => {
+    console.log('A user connected: ' + socket.id);
+
+    socket.on('sendMessage', (message) => {
+        io.emit('newMessage', message);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected: ' + socket.id);
+    });
+});
+
+server.listen(1500, () => {
+    console.log('Server is running on port 1500');
+});
