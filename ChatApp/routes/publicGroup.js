@@ -5,5 +5,5 @@ const router = express.Router();
 
 router.post('/publicgroup', verifyToken, publicGroupController.sendMessage);
 router.get('/publicgroup', verifyToken, publicGroupController.getMessages);
-
+router.post('/upload', verifyToken, publicGroupController.uploadFile);
 module.exports = router;
