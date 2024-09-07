@@ -1,3 +1,4 @@
+<!-- views/chat.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,13 +9,15 @@
 </head>
 <body>
     <div class="container">
+        <!-- Sidebar with online users and groups -->
         <aside class="sidebar">
             <div class="header">
                 <h1>Chat App</h1>
             </div>
             <div class="users-cont">
                 <h3>Online Users</h3>
-                <div id="users" class="users-list"></div>
+                <div id="users" class="users-list">
+                </div>
             </div>
             <div class="groups-cont">
                 <h3>Groups</h3>
@@ -28,61 +31,70 @@
             <button onclick="logout()">Logout</button>
         </aside>
         <main class="chat-cont">
-            <div class="msg-cont" id="msg-cont"></div>
+            <div class="msg-cont" id="msg-cont">
+            </div>
             <div class="input-cont">
                 <input type="text" id="msg-input" placeholder="Type your message...">
                 <input type="submit" value="Send" onclick="sendMessage()">
             </div>
         </main>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
     <script>
         const token = localStorage.getItem('token');
-        const socket = io();
-
-        socket.on('connect', () => {
-            console.log('Connected to server');
+        const socket = io('http://localhost:1500', {
+            auth: {
+                token: token
+            }
         });
 
-        socket.on('newMessage', (message) => {
+        socket.on('connect', () => {
+            console.log('Connected to server via Socket.IO');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.on('onlineUsers', (users) => {
+            const usersList = document.getElementById('users');
+            usersList.innerHTML = ''; 
+            users.forEach(user => {
+                const userElement = document.createElement('div');
+                userElement.classList.add('user');
+                userElement.textContent = user.name;
+                usersList.appendChild(userElement);
+            });
+        });
+
+        socket.on('newMessage', (msg) => {
             const msgContainer = document.getElementById('msg-cont');
             const msgElement = document.createElement('div');
             msgElement.classList.add('message');
-            msgElement.innerHTML = `<strong>${message.User.name}:</strong> ${message.message}`;
+            msgElement.innerHTML = `<strong>${msg.User.name}:</strong> ${msg.message}`;
             msgContainer.appendChild(msgElement);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
         });
 
-        function sendMessage() {
-            const msg = document.querySelector('#msg-input').value;
-            axios.post('http://localhost:1500/user/publicgroup', { message: msg }, {
+        function logout() {
+            axios.post('http://localhost:1500/user/logout', {}, {
                 headers: { 'Authorization': token }
             })
             .then(response => {
-                document.querySelector('#msg-input').value = '';
-                socket.emit('sendMessage', response.data.newMessage);
+                localStorage.removeItem('token');
+                window.location.href = '/login';
             })
             .catch(error => {
-                console.error('Error sending message:', error);
+                console.error('Error logging out:', error);
             });
         }
 
-        function fetchLoggedInUsers() {
-            axios.get('http://localhost:1500/user/logged-in-users')
-                .then(response => {
-                    const usersList = document.getElementById('users');
-                    usersList.innerHTML = ''; 
-                    response.data.forEach(user => {
-                        const userElement = document.createElement('div');
-                        userElement.classList.add('user');
-                        userElement.textContent = user.name;
-                        usersList.appendChild(userElement);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching logged-in users:', error);
-                });
+        function sendMessage() {
+            const msg = document.querySelector('#msg-input').value;
+            if (msg.trim() === '') return;
+            socket.emit('sendMessage', { message: msg });
+            document.querySelector('#msg-input').value = ''; 
         }
 
         function createGroup() {
@@ -98,6 +110,24 @@
                 .catch(error => {
                     console.error('Error creating group:', error);
                     alert('Failed to create group');
+                });
+            }
+        }
+
+        function addUserToGroup() {
+            const email = prompt('Enter the user\'s email:');
+            const groupId = prompt('Enter the group ID:');
+
+            if (email && groupId) {
+                axios.post('http://localhost:1500/group/add-user', { email, groupId }, {
+                    headers: { 'Authorization': token }
+                })
+                .then(response => {
+                    alert(response.data.message);
+                })
+                .catch(error => {
+                    console.error('Error adding user to group:', error);
+                    alert('Failed to add user to group');
                 });
             }
         }
@@ -127,20 +157,32 @@
             });
         }
 
-        function logout() {
-            axios.post('http://localhost:1500/user/logout', {}, {
+        // Initial message fetch(on load)
+        function fetchInitialMessages() {
+            axios.get('http://localhost:1500/publicgroup/publicgroup', {
                 headers: { 'Authorization': token }
             })
             .then(response => {
-                localStorage.removeItem('token');
-                window.location.href = '/login';
+                const msgContainer = document.getElementById('msg-cont');
+                msgContainer.innerHTML = '';
+                response.data.forEach(msg => {
+                    const msgElement = document.createElement('div');
+                    msgElement.classList.add('message');
+                    msgElement.innerHTML = `<strong>${msg.User.name}:</strong> ${msg.message}`;
+                    msgContainer.appendChild(msgElement);
+                });
+                msgContainer.scrollTop = msgContainer.scrollHeight;
             })
             .catch(error => {
-                console.error('Error logging out:', error);
+                console.error('Error fetching messages:', error);
             });
         }
 
-        window.onload = fetchLoggedInUsers;
+        // Fetch initial data on load
+        window.onload = () => {
+            fetchInitialMessages();
+        };
+        
     </script>
 </body>
 </html>
