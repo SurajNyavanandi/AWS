@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h3>Sign Up</h3>
+        <form action="" onsubmit="postSignUp(event)">
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" placeholder="Enter Name" required>
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" placeholder="Enter Email" required>
+            <label for="phone">Phone Number:</label>
+            <input type="tel" name="phone" id="phone" placeholder="Enter Phone Number" required>
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" placeholder="********" required>
+            <button type="submit">Sign Up</button>
+        </form>
+        <a href="http://localhost:7015/login">Existing User---Login</a>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+<script>
+    const api = 'http://localhost:7015/user';
+
+    function postSignUp(event) {
+        event.preventDefault();
+        const user = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            password: document.getElementById('password').value
+        };
+
+        axios.post(`${api}/signup`, user)
+            .then(response => {
+                window.location.href = '/login';
+            })
+            .catch(error => {
+                console.log(error);
+                alert("Signup failed");
+            });
+    }
+</script>
+</html>
