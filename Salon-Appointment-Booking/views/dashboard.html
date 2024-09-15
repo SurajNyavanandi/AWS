@@ -1,0 +1,248 @@
+<!-- //views/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobApplicationTracker</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar with navigation options -->
+        <aside class="sidebar">
+            <div class="header">
+                <h1>Salon Appointment Booking</h1>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="viewProfile()">Profile</button>
+                <button onclick="viewServices()">Services</button>
+                <button onclick="viewStaff()">Staff</button>
+                <button onclick="appointment()">Appointment</button> 
+                <button onclick="admin()">Admin Dashboard</button>     
+                <button onclick="switchRoles()">Switch Roles</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </aside>
+        <main class="dashboard-content">
+            <!-- Main dashboard content -->
+            <div class="content-header">
+                <h2>Dashboard</h2>
+            </div>
+            <div class="content-body">
+                <!-- Placeholder for dashboard content -->
+                <p>Welcome to the Salon Appointment Booking dashboard.</p>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+    <script>
+        const api = 'http://localhost:7015/user';
+        const api1 ='http://localhost:7015/admin';
+
+    function viewProfile() {
+            const contentBody = document.querySelector('.content-body');
+            contentBody.innerHTML = '';    
+            axios.get(`${api}/profile`, {
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                const userData = response.data;
+                const profileHtml = `
+                    <h3>User Profile</h3>
+                    <p><strong>Name:</strong> ${userData.name}</p>
+                    <p><strong>Email:</strong> ${userData.email}</p>
+                    <p><strong>Phone:</strong> ${userData.phone}</p>
+                `;
+                contentBody.innerHTML = profileHtml;
+            })
+            .catch(error => {
+                console.error('Error fetching profile:', error);
+                contentBody.innerHTML = '<p>Could not load profile data.</p>';
+            });
+        }
+    function logout() {
+            axios.post(`${api}/logout`, {}, {
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            })
+            .catch(error => {
+                console.error('Error during logout:', error);
+                alert('Logout failed.');
+            });
+        }   
+    function switchRoles() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="switchToAdmin()">Switch to Admin</button>
+            <button onclick="switchToUser()">Switch to User</button>
+        `;
+    }
+    function switchToAdmin() {
+        axios.post(`${api1}/switch-to-admin`, {}, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert('Role switched to Admin successfully');
+            // Optionally, reload or redirect
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error switching to Admin:', error);
+            alert('Failed to switch to Admin role.');
+        });
+    }
+    function switchToUser() {
+        axios.post(`${api1}/switch-to-user`, {}, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert('Role switched to User successfully');
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error switching to User:', error);
+            alert('Failed to switch to User role.');
+        });
+    }
+    function admin() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = '<h3>Admin Dashboard</h3>';
+        axios.get(`${api1}/dashboard`, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        })
+        .then(response => {
+            const { staff, services } = response.data;
+
+            let staffHtml = '<h4>Manage Staff</h4>';
+            staffHtml += '<button onclick="addStaff()">Add Staff</button>';
+            staffHtml += '<ul>';
+            staff.forEach(member => {
+                staffHtml += `<li>${member.name} - ${member.specialization} [<button onclick="editStaff(${member.id})">Update</button>] [<button onclick="deleteStaff(${member.id})">Delete</button>]</li>`;
+            });
+            staffHtml += '</ul>';
+
+            let serviceHtml = '<h4>Manage Services</h4>';
+            serviceHtml += '<button onclick="addService()">Add Service</button>';
+            serviceHtml += '<ul>';
+            services.forEach(service => {
+                serviceHtml += `<li>${service.name} - ${service.price} [<button onclick="editService(${service.id})">Update</button>] [<button onclick="deleteService(${service.id})">Delete</button>]</li>`;
+            });
+            serviceHtml += '</ul>';
+
+            contentBody.innerHTML = staffHtml + serviceHtml;
+        })
+        .catch(error => {
+            console.error('Error fetching dashboard data:', error);
+            contentBody.innerHTML = '<p>Failed to load admin data.</p>';
+        });
+    }
+    function addStaff() {
+        const name = prompt('Enter staff name:');
+        const specialization = prompt('Enter staff specialization:');
+        const available = confirm('Is staff available?');
+        axios.post(`${api1}/staff`, { name, specialization, available }, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        }).then(() => admin()).catch(error => alert('Failed to add staff.'));
+    }
+    function editStaff(id) {
+        const name = prompt('Enter new staff name:');
+        const specialization = prompt('Enter new staff specialization:');
+        const available = confirm('Is staff available?');
+        axios.put(`${api1}/staff/${id}`, { name, specialization, available }, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        }).then(() => admin()).catch(error => alert('Failed to update staff.'));
+    }
+    function deleteStaff(id) {
+        axios.delete(`${api1}/staff/${id}`, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        }).then(() => admin()).catch(error => alert('Failed to delete staff.'));
+    }
+    function addService() {
+        const name = prompt('Enter service name:');
+        const description = prompt('Enter service description:');
+        const duration = prompt('Enter service duration in minutes:');
+        const price = prompt('Enter service price:');
+        axios.post(`${api1}/service`, { name, description, duration, price }, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        }).then(() => admin()).catch(error => alert('Failed to add service.'));
+    }
+    function editService(id) {
+        const name = prompt('Enter new service name:');
+        const description = prompt('Enter new service description:');
+        const duration = prompt('Enter new service duration:');
+        const price = prompt('Enter new service price:');
+        axios.put(`${api1}/service/${id}`, { name, description, duration, price }, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        }).then(() => admin()).catch(error => alert('Failed to update service.'));
+    }
+    function deleteService(id) {
+        axios.delete(`${api1}/service/${id}`, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        }).then(() => admin()).catch(error => alert('Failed to delete service.'));
+    }
+    function viewServices() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = '<h3>Services</h3>';
+        axios.get(`${api1}/services`, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        })
+        .then(response => {
+            const services = response.data;
+            let servicesHtml = '<ul>';
+            services.forEach(service => {
+                servicesHtml += `<li>${service.name} - ${service.price}</li>`;
+            });
+            servicesHtml += '</ul>';
+            contentBody.innerHTML += servicesHtml;
+        })
+        .catch(error => {
+            console.error('Error fetching services:', error);
+            contentBody.innerHTML += '<p>Failed to load services.</p>';
+        });
+    }
+    function viewStaff() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = '<h3>Available Staff</h3>';
+        axios.get(`${api1}/available-staff`, {
+            headers: { 'Authorization': localStorage.getItem('token') }
+        })
+        .then(response => {
+            const staff = response.data;
+            let staffHtml = '<ul>';
+            staff.forEach(member => {
+                staffHtml += `<li>${member.name} - ${member.specialization}</li>`;
+            });
+            staffHtml += '</ul>';
+            contentBody.innerHTML += staffHtml;
+        })
+        .catch(error => {
+            console.error('Error fetching available staff:', error);
+            contentBody.innerHTML += '<p>Failed to load available staff.</p>';
+        });
+    }
+    function appointment() {
+            const contentBody = document.querySelector('.content-body');
+            contentBody.innerHTML = `
+                <h3>Appointment Management</h3>
+                <button onclick="bookAppointment()">Book Appointment</button>
+                <button onclick="cancelAppointment()">Cancel Appointment</button>
+                <button onclick="rescheduleAppointment()">Reschedule Appointment</button>
+            `;
+        } 
+
+  </script>
+    
+</body>
+</html>
