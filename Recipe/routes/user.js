@@ -8,8 +8,10 @@ router.post('/signup', userController.createUser);
 router.post('/login', userController.createLogin);
 router.post('/logout', verifyToken, userController.logout); 
 router.get('/profile', verifyToken, userController.getProfile);
-
 router.post('/create-recipe', verifyToken, userController.createRecipe);
+//router.get('/manage-recipes', verifyToken, userController.manageRecipes);
+router.put('/edit-recipe/:id', verifyToken, userController.editRecipe);
+router.delete('/delete-recipe/:id', verifyToken, userController.deleteRecipe);
 router.get('/manage-recipes', verifyToken, userController.manageRecipes);
 router.get('/list-recipes', verifyToken, userController.listRecipes);
 router.post('/search-recipes', verifyToken, userController.searchRecipes);

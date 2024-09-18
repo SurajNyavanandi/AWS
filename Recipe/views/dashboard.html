@@ -288,20 +288,96 @@
         });
     }
 
-    function admin() {
-        axios.get(`${api1}/dashboard`, {
-            headers: {
-                'Authorization': localStorage.getItem('token')
-            }
-        })
-        .then(response => {
-            alert(response.data.message);
-        })
-        .catch(error => {
-            console.error('Error fetching following:', error);
-            alert('Failed to fetch Admin Dashboard.');
-        });
+function admin() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="adminManageUsers()">Manage Users</button>
+            <button onclick="adminManageRecipes()">Manage Recipes</button>
+        `;
     }
+function adminManageUsers() {
+    const contentBody = document.querySelector('.content-body');
+    contentBody.innerHTML = ''; // Clear the content body
+
+    axios.get(`${api1}/users`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then((res) => {
+        let users = res.data;
+        contentBody.innerHTML = '<h3>Manage Users</h3>';
+        users.forEach((user) => {
+            let userDiv = document.createElement('div');
+            userDiv.innerHTML = `
+                <span>${user.name} -- ${user.email}</span>
+                <button onclick="deleteUser('${user.id}')">Delete</button>
+            `;
+            contentBody.appendChild(userDiv);
+        });
+    })
+    .catch((err) => {
+        console.error("Error fetching users:", err);
+        contentBody.innerHTML = '<p>Failed to load users.</p>';
+    });
+}
+function deleteUser(userId) {
+    axios.delete(`${api1}/delete-user/${userId}`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then((res) => {
+        alert(res.data.message);
+        adminManageUsers(); // Reload users after deletion
+    })
+    .catch((err) => {
+        console.error("Error deleting user:", err);
+        alert('Only admins can access this.');
+    });
+}
+function adminManageRecipes() {
+    const contentBody = document.querySelector('.content-body');
+    contentBody.innerHTML = ''; // Clear the content body
+
+    axios.get(`${api1}/recipes`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then((res) => {
+        let recipes = res.data;
+        contentBody.innerHTML = '<h3>Manage Recipes</h3>';
+        recipes.forEach((recipe) => {
+            let recipeDiv = document.createElement('div');
+            recipeDiv.innerHTML = `
+                <span>${recipe.title} -- ${recipe.description}</span>
+                <button onclick="deleteRecipe('${recipe.id}')">Delete</button>
+            `;
+            contentBody.appendChild(recipeDiv);
+        });
+    })
+    .catch((err) => {
+        console.error("Error fetching recipes:", err);
+        contentBody.innerHTML = '<p>Failed to load recipes.</p>';
+    });
+}
+function deleteRecipe(recipeId) {
+    axios.delete(`${api1}/delete-recipe/${recipeId}`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then((res) => {
+        alert(res.data.message);
+        adminManageRecipes(); // Reload recipes after deletion
+    })
+    .catch((err) => {
+        console.error("Error deleting recipe:", err);
+        alert('Only admins can access this.');
+    });
+}
+
 </script>
     
 </body>
