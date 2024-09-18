@@ -1,0 +1,308 @@
+<!-- //views/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe</title>
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar with navigation options -->
+        <aside class="sidebar">
+            <div class="header">
+                <h1>Recipe</h1>
+            </div>
+            <div class="nav-buttons">
+                <button onclick="viewProfile()">Profile</button>
+                <button onclick="createRecipe()">Create Recipe</button>
+                <button onclick="searchRecipes()">Search Recipes</button>
+                <button onclick="favorites()">Favorites</button>
+                <button onclick="reviewAndRatings()">Reviews and Ratings</button>
+                <button onclick="follow()">Follow</button>
+                <button onclick="switchRoles()">Switch Roles</button>
+                <button onclick="admin()">Admin Dashboard</button>     
+                <button onclick="logout()">Logout</button>
+            </div>
+        </aside>
+        <main class="dashboard-content">
+            <!-- Main dashboard content -->
+            <div class="content-header">
+                <h2>Dashboard</h2>
+            </div>
+            <div class="content-body">
+                <!-- Placeholder for dashboard content -->
+                <p>Welcome to the Recipe Dashboard.</p>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+    <script>
+        const api = 'http://localhost:7015/user';
+        const api1 ='http://localhost:7015/admin';
+
+    function viewProfile() {
+            const contentBody = document.querySelector('.content-body');
+            contentBody.innerHTML = '';    
+            axios.get(`${api}/profile`, {
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                const userData = response.data;
+                const profileHtml = `
+                    <h3>User Profile</h3>
+                    <p><strong>Name:</strong> ${userData.name}</p>
+                    <p><strong>Email:</strong> ${userData.email}</p>
+                    <p><strong>Phone:</strong> ${userData.phone}</p>
+
+                `;
+                contentBody.innerHTML = profileHtml;
+            })
+            .catch(error => {
+                console.error('Error fetching profile:', error);
+                contentBody.innerHTML = '<p>Could not load profile data.</p>';
+            });
+        }
+    function logout() {
+            axios.post(`${api}/logout`, {}, {
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                }
+            })
+            .then(response => {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+            })
+            .catch(error => {
+                console.error('Error during logout:', error);
+                alert('Logout failed.');
+            });
+        }   
+    function switchRoles() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="switchToAdmin()">Switch to Admin</button>
+            <button onclick="switchToUser()">Switch to User</button>
+        `;
+    }
+    function switchToAdmin() {
+        axios.post(`${api1}/switch-to-admin`, {}, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert('Role switched to Admin successfully');
+            // Optionally, reload or redirect
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error switching to Admin:', error);
+            alert('Failed to switch to Admin role.');
+        });
+    }
+    function switchToUser() {
+        axios.post(`${api1}/switch-to-user`, {}, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert('Role switched to User successfully');
+            window.location.reload();
+        })
+        .catch(error => {
+            console.error('Error switching to User:', error);
+            alert('Failed to switch to User role.');
+        });
+    }
+
+    
+    function createRecipe() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="newRecipe()">Create New Recipe</button>
+            <button onclick="manageRecipes()">Manage Your Recipes</button>
+        `;
+    }
+
+    function newRecipe() {
+        axios.post(`${api}/create-recipe`, {}, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error creating recipe:', error);
+            alert('Failed to create recipe.');
+        });
+    }
+
+    function manageRecipes() {
+        axios.get(`${api}/manage-recipes`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error managing recipes:', error);
+            alert('Failed to manage recipes.');
+        });
+    }
+
+    function searchRecipes() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="listRecipes()">List All Recipes</button>
+            <button onclick="searchWithKeyword()">Search with Keyword</button>
+        `;
+    }
+
+    function listRecipes() {
+        axios.get(`${api}/list-recipes`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error listing recipes:', error);
+            alert('Failed to list recipes.');
+        });
+    }
+
+    function searchWithKeyword() {
+        axios.post(`${api}/search-recipes`, {}, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error searching recipes:', error);
+            alert('Failed to search recipes.');
+        });
+    }
+
+    function favorites() {
+        axios.get(`${api}/favorites`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error fetching favorites:', error);
+            alert('Failed to fetch favorites.');
+        });
+    }
+
+    function reviewAndRatings() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="yourReviews()">Your Reviews</button>
+            <button onclick="reviewsToYourRecipes()">Reviews to Your Recipes</button>
+        `;
+    }
+
+    function yourReviews() {
+        axios.get(`${api}/your-reviews`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error fetching your reviews:', error);
+            alert('Failed to fetch your reviews.');
+        });
+    }
+
+    function reviewsToYourRecipes() {
+        axios.get(`${api}/reviews-to-recipes`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error fetching reviews:', error);
+            alert('Failed to fetch reviews.');
+        });
+    }
+
+    function follow() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="followers()">Followers</button>
+            <button onclick="following()">Following</button>
+        `;
+    }
+
+    function followers() {
+        axios.get(`${api}/followers`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error fetching followers:', error);
+            alert('Failed to fetch followers.');
+        });
+    }
+
+    function following() {
+        axios.get(`${api}/following`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error fetching following:', error);
+            alert('Failed to fetch following.');
+        });
+    }
+
+    function admin() {
+        axios.get(`${api1}/dashboard`, {
+            headers: {
+                'Authorization': localStorage.getItem('token')
+            }
+        })
+        .then(response => {
+            alert(response.data.message);
+        })
+        .catch(error => {
+            console.error('Error fetching following:', error);
+            alert('Failed to fetch Admin Dashboard.');
+        });
+    }
+</script>
+    
+</body>
+</html>
