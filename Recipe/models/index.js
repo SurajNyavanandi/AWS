@@ -3,14 +3,13 @@ const User = require('./user');
 const Recipe = require('./recipe');
 const Review = require('./review');
 const Favorite = require('./favorite');
-const Follower = require('./follower');
+const Following = require('./following');
 
 // User Associations
 User.hasMany(Recipe, { foreignKey: 'user_id' });
 User.hasMany(Review, { foreignKey: 'user_id' });
 User.hasMany(Favorite, { foreignKey: 'user_id' });
-User.belongsToMany(User, { through: Follower, as: 'Followers', foreignKey: 'followed_id' });
-User.belongsToMany(User, { through: Follower, as: 'Following', foreignKey: 'follower_id' });
+User.hasMany(Following, { foreignKey: 'follower_id', as: 'Following' }); 
 
 // Recipe Associations
 Recipe.belongsTo(User, { foreignKey: 'user_id' });
@@ -25,10 +24,4 @@ Review.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 Favorite.belongsTo(User, { foreignKey: 'user_id' });
 Favorite.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
-module.exports = {
-  User,
-  Recipe,
-  Review,
-  Favorite,
-  Follower
-};
+module.exports = {User,Recipe,Review,Favorite, Following };

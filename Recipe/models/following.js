@@ -1,8 +1,8 @@
-// models/follower.js
+// models/following.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const Follower = sequelize.define('Follower', {
+const Following = sequelize.define('Following', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     follower_id: { 
         type: DataTypes.INTEGER, 
@@ -16,4 +16,4 @@ const Follower = sequelize.define('Follower', {
     }
 });
 
-module.exports = Follower;
+module.exports = Following;

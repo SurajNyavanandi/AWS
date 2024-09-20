@@ -1,6 +1,5 @@
 //controllers/admin.js
-const User = require('../models/user');
-const Recipe = require('../models/recipe');
+const { Favorite, Recipe, User } = require('../models');
 const sequelize = require('../config/database');
 
 exports.switchToAdmin = async (req, res) => {

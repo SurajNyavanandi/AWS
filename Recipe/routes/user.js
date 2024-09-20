@@ -9,16 +9,16 @@ router.post('/login', userController.createLogin);
 router.post('/logout', verifyToken, userController.logout); 
 router.get('/profile', verifyToken, userController.getProfile);
 router.post('/create-recipe', verifyToken, userController.createRecipe);
-//router.get('/manage-recipes', verifyToken, userController.manageRecipes);
 router.put('/edit-recipe/:id', verifyToken, userController.editRecipe);
 router.delete('/delete-recipe/:id', verifyToken, userController.deleteRecipe);
 router.get('/manage-recipes', verifyToken, userController.manageRecipes);
 router.get('/list-recipes', verifyToken, userController.listRecipes);
-router.post('/search-recipes', verifyToken, userController.searchRecipes);
+router.post('/add-to-favorites', verifyToken, userController.addToFavorites);
 router.get('/favorites', verifyToken, userController.favorites);
-router.get('/your-reviews', verifyToken, userController.yourReviews);
-router.get('/reviews-to-recipes', verifyToken, userController.reviewsToRecipes);
-router.get('/followers', verifyToken, userController.followers);
-router.get('/following', verifyToken, userController.following);
+router.post('/add-review', verifyToken, userController.addReview);  
+router.get('/your-reviews', verifyToken, userController.getUserReviews);  
+router.post('/follow', verifyToken, userController.followUser);
+router.get('/following', verifyToken, userController.getFollowing);
+
 
 module.exports = router;

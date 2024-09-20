@@ -41,8 +41,7 @@
     <script>
         const api = 'http://localhost:7015/user';
         const api1 ='http://localhost:7015/admin';
-
-    function viewProfile() {
+function viewProfile() {
             const contentBody = document.querySelector('.content-body');
             contentBody.innerHTML = '';    
             axios.get(`${api}/profile`, {
@@ -53,12 +52,16 @@
             .then(response => {
                 const userData = response.data;
                 const profileHtml = `
-                    <h3>User Profile</h3>
-                    <p><strong>Name:</strong> ${userData.name}</p>
-                    <p><strong>Email:</strong> ${userData.email}</p>
-                    <p><strong>Phone:</strong> ${userData.phone}</p>
-
-                `;
+            <h3>User Profile</h3>
+            <p><strong>User ID:</strong> ${userData.id}</p>
+            <p><strong>Name:</strong> ${userData.name}</p>
+            <p><strong>Email:</strong> ${userData.email}</p>
+            <p><strong>Phone:</strong> ${userData.phone}</p>
+            <p><strong>Premium User:</strong> ${userData.isPremium ? 'Yes' : 'No'}</p>
+            <p><strong>Admin:</strong> ${userData.isAdmin ? 'Yes' : 'No'}</p>
+            <p><strong>Profile Picture:</strong></p>
+            <img src="${userData.profile_picture}" alt="Profile Picture" width="100">
+        `;
                 contentBody.innerHTML = profileHtml;
             })
             .catch(error => {
@@ -66,7 +69,7 @@
                 contentBody.innerHTML = '<p>Could not load profile data.</p>';
             });
         }
-    function logout() {
+function logout() {
             axios.post(`${api}/logout`, {}, {
                 headers: {
                     'Authorization': localStorage.getItem('token')
@@ -81,14 +84,14 @@
                 alert('Logout failed.');
             });
         }   
-    function switchRoles() {
+function switchRoles() {
         const contentBody = document.querySelector('.content-body');
         contentBody.innerHTML = `
             <button onclick="switchToAdmin()">Switch to Admin</button>
             <button onclick="switchToUser()">Switch to User</button>
         `;
     }
-    function switchToAdmin() {
+function switchToAdmin() {
         axios.post(`${api1}/switch-to-admin`, {}, {
             headers: {
                 'Authorization': localStorage.getItem('token')
@@ -104,7 +107,7 @@
             alert('Failed to switch to Admin role.');
         });
     }
-    function switchToUser() {
+function switchToUser() {
         axios.post(`${api1}/switch-to-user`, {}, {
             headers: {
                 'Authorization': localStorage.getItem('token')
@@ -118,19 +121,48 @@
             console.error('Error switching to User:', error);
             alert('Failed to switch to User role.');
         });
-    }
-
-    
-    function createRecipe() {
+    }   
+function createRecipe() {
         const contentBody = document.querySelector('.content-body');
         contentBody.innerHTML = `
             <button onclick="newRecipe()">Create New Recipe</button>
             <button onclick="manageRecipes()">Manage Your Recipes</button>
         `;
     }
+function newRecipe() {
+    const contentBody = document.querySelector('.content-body');
+    contentBody.innerHTML = `
+        <h3>Create New Recipe</h3>
+        <form id="new-recipe-form">
+            <label for="title">Recipe Title:</label>
+            <input type="text" id="title" name="title" required><br><br>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea><br><br>
+            <label for="ingredients">Ingredients:</label>
+            <textarea id="ingredients" name="ingredients" required></textarea><br><br>
+            <label for="instructions">Instructions:</label>
+            <textarea id="instructions" name="instructions" required></textarea><br><br>
+            <label for="cooking_time">Cooking Time (minutes):</label>
+            <input type="number" id="cooking_time" name="cooking_time" required><br><br>
+            <label for="servings">Servings:</label>
+            <input type="number" id="servings" name="servings" required><br><br>
+            <button type="submit">Create Recipe</button>
+        </form>
+    `;
 
-    function newRecipe() {
-        axios.post(`${api}/create-recipe`, {}, {
+    document.getElementById('new-recipe-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const recipeData = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            ingredients: document.getElementById('ingredients').value,
+            instructions: document.getElementById('instructions').value,
+            cooking_time: document.getElementById('cooking_time').value,
+            servings: document.getElementById('servings').value,
+        };
+
+        axios.post(`${api}/create-recipe`, recipeData, {
             headers: {
                 'Authorization': localStorage.getItem('token')
             }
@@ -142,33 +174,194 @@
             console.error('Error creating recipe:', error);
             alert('Failed to create recipe.');
         });
-    }
+    });
+}
+function manageRecipes() {
+    const contentBody = document.querySelector('.content-body');
+    contentBody.innerHTML = ''; 
 
-    function manageRecipes() {
-        axios.get(`${api}/manage-recipes`, {
+    axios.get(`${api}/manage-recipes`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then((res) => {
+        let recipes = res.data;
+        contentBody.innerHTML = '<h3>Your Recipes</h3>';
+        recipes.forEach((recipe) => {
+            let recipeDiv = document.createElement('div');
+            recipeDiv.innerHTML = `
+                <span>${recipe.id} -- ${recipe.title} -- ${recipe.description} -- ${recipe.cooking_time} minutes -- Serves: ${recipe.servings}</span>
+                <button onclick="editRecipe('${recipe.id}', '${recipe.title}', '${recipe.description}', '${recipe.cooking_time}', '${recipe.servings}')">Edit</button>
+                <button onclick="saveRecipe('${recipe.id}')" style="display: none">Save</button>
+                <button onclick="deleteRecipe('${recipe.id}')">Delete</button>
+            `;
+            contentBody.appendChild(recipeDiv);
+        });
+    })
+    .catch((err) => {
+        console.error("Error managing recipes:", err);
+        contentBody.innerHTML = '<p>Failed to load your recipes.</p>';
+    });
+}
+function editRecipe(id, title, description, cookingTime, servings) {
+    const recipeDiv = event.target.parentElement;
+    recipeDiv.innerHTML = `
+        <input type="text" id="title-${id}" value="${title}">
+        <input type="text" id="description-${id}" value="${description}">
+        <input type="number" id="cookingTime-${id}" value="${cookingTime}">
+        <input type="number" id="servings-${id}" value="${servings}">
+        <button onclick="saveRecipe('${id}')">Save</button>
+    `;
+}
+function saveRecipe(id) {
+    const title = document.getElementById(`title-${id}`).value;
+    const description = document.getElementById(`description-${id}`).value;
+    const cookingTime = document.getElementById(`cookingTime-${id}`).value;
+    const servings = document.getElementById(`servings-${id}`).value;
+
+    const updatedRecipe = { title, description, cooking_time: cookingTime, servings };
+
+    axios.put(`${api}/edit-recipe/${id}`, updatedRecipe, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then((res) => {
+        alert('Recipe updated successfully');
+        manageRecipes(); // Reload the recipe list
+    })
+    .catch((err) => {
+        console.error('Error updating recipe:', err);
+        alert('Failed to update recipe.');
+    });
+}
+function deleteRecipe(id) {
+    if (confirm('Are you sure you want to delete this recipe?')) {
+        axios.delete(`${api}/delete-recipe/${id}`, {
             headers: {
                 'Authorization': localStorage.getItem('token')
             }
         })
-        .then(response => {
-            alert(response.data.message);
+        .then((res) => {
+            alert('Recipe deleted successfully');
+            manageRecipes(); // Reload the recipe list
         })
-        .catch(error => {
-            console.error('Error managing recipes:', error);
-            alert('Failed to manage recipes.');
+        .catch((err) => {
+            console.error('Error deleting recipe:', err);
+            alert('Failed to delete recipe.');
         });
     }
-
-    function searchRecipes() {
+}
+function searchRecipes() {
         const contentBody = document.querySelector('.content-body');
         contentBody.innerHTML = `
             <button onclick="listRecipes()">List All Recipes</button>
-            <button onclick="searchWithKeyword()">Search with Keyword</button>
         `;
     }
+function listRecipes() {
+    axios.get(`${api}/list-recipes`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then(response => {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = '';
+        let recipes = response.data.recipes;
 
-    function listRecipes() {
-        axios.get(`${api}/list-recipes`, {
+        recipes.forEach(recipe => {
+            let recipeDiv = document.createElement('div');
+            recipeDiv.innerHTML = `
+                <h4>${recipe.title}--[${recipe.id}]</h4>
+                <p>${recipe.description}</p>
+                <p>Ingredients: ${recipe.ingredients}</p>
+                <p>Instructions: ${recipe.instructions}</p>
+                <p>Cooking Time: ${recipe.cooking_time} minutes</p>
+                <p>Servings: ${recipe.servings}</p>
+                <p>Recipe by: ${recipe.User.name}</p>
+                <button onclick="addReview('${recipe.id}')">Add Review</button>
+                <button onclick="addToFavorites('${recipe.id}')">Add to Favorites</button>
+                <button onclick="followUser('${recipe.User.id}')">Follow ${recipe.User.name}</button>
+            `;
+            contentBody.appendChild(recipeDiv);
+        });
+    })
+    .catch(error => {
+        console.error('Error listing recipes:', error);
+        alert('Failed to list recipes.');
+    });
+}
+function followUser(userId) {
+    axios.post(`${api}/follow`, { userId }, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then(response => {
+        alert(response.data.message);
+    })
+    .catch(error => {
+        alert('Failed to follow user.');
+    });
+}
+function follow() {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = `
+            <button onclick="following()">Following</button>
+        `;
+    }
+function following() {
+    axios.get(`${api}/following`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then(response => {
+        const contentBody = document.querySelector('.content-body');
+        contentBody.innerHTML = '';
+
+        const followingList = response.data.following;
+        
+        if (followingList.length > 0) {
+            const ul = document.createElement('ul');
+            for (let i = 0; i < followingList.length; i++) {
+                const li = document.createElement('li');
+                li.textContent = followingList[i];
+                ul.appendChild(li);
+            }
+            contentBody.appendChild(ul);
+        } else {
+            contentBody.textContent = "You are not following anyone.";
+        }
+    })
+    .catch(() => {
+        alert('Failed to fetch following.');
+    });
+}
+function addReview(recipeId) {
+    const contentBody = document.querySelector('.content-body');
+    contentBody.innerHTML = `
+        <h3>Add Review for Recipe ID: ${recipeId}</h3>
+        <form id="add-review-form">
+            <label for="rating">Rating (1-5):</label>
+            <input type="number" id="rating" name="rating" min="1" max="5" required><br><br>
+            <label for="comment">Comment:</label>
+            <textarea id="comment" name="comment" required></textarea><br><br>
+            <button type="submit">Submit Review</button>
+        </form>
+    `;
+
+    document.getElementById('add-review-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const reviewData = {
+            rating: document.getElementById('rating').value,
+            comment: document.getElementById('comment').value,
+            recipe_id: recipeId
+        };
+
+        axios.post(`${api}/add-review`, reviewData, {
             headers: {
                 'Authorization': localStorage.getItem('token')
             }
@@ -177,13 +370,13 @@
             alert(response.data.message);
         })
         .catch(error => {
-            console.error('Error listing recipes:', error);
-            alert('Failed to list recipes.');
+            console.error('Error adding review:', error);
+            alert('Failed to submit review.');
         });
-    }
-
-    function searchWithKeyword() {
-        axios.post(`${api}/search-recipes`, {}, {
+    });
+}
+function addToFavorites(recipeId) {
+        axios.post(`${api}/add-to-favorites`, { recipeId }, {
             headers: {
                 'Authorization': localStorage.getItem('token')
             }
@@ -192,102 +385,77 @@
             alert(response.data.message);
         })
         .catch(error => {
-            console.error('Error searching recipes:', error);
-            alert('Failed to search recipes.');
+            console.error('Error adding to favorites:', error);
+            alert('Failed to add recipe to favorites.');
         });
     }
-
-    function favorites() {
+function favorites() {
         axios.get(`${api}/favorites`, {
             headers: {
                 'Authorization': localStorage.getItem('token')
             }
         })
         .then(response => {
-            alert(response.data.message);
+            const contentBody = document.querySelector('.content-body');
+            contentBody.innerHTML = '';  // Clear previous content
+
+            const favorites = response.data.favorites;
+            if (favorites.length === 0) {
+                contentBody.innerHTML = '<p>You have no favorite recipes yet.</p>';
+            } else {
+                favorites.forEach(favorite => {
+                    const recipe = favorite.Recipe;  // Access associated recipe data
+                    let recipeDiv = document.createElement('div');
+                    recipeDiv.innerHTML = `
+                        <h4>${recipe.title}</h4>
+                        <p>${recipe.description}</p>
+                        <p>Ingredients: ${recipe.ingredients}</p>
+                        <p>Instructions: ${recipe.instructions}</p>
+                        <p>Cooking Time: ${recipe.cooking_time} minutes</p>
+                        <p>Servings: ${recipe.servings}</p>
+                    `;
+                    contentBody.appendChild(recipeDiv);
+                });
+            }
         })
         .catch(error => {
             console.error('Error fetching favorites:', error);
             alert('Failed to fetch favorites.');
         });
     }
-
-    function reviewAndRatings() {
+function reviewAndRatings() {
         const contentBody = document.querySelector('.content-body');
         contentBody.innerHTML = `
             <button onclick="yourReviews()">Your Reviews</button>
-            <button onclick="reviewsToYourRecipes()">Reviews to Your Recipes</button>
         `;
     }
-
-    function yourReviews() {
-        axios.get(`${api}/your-reviews`, {
-            headers: {
-                'Authorization': localStorage.getItem('token')
-            }
-        })
-        .then(response => {
-            alert(response.data.message);
-        })
-        .catch(error => {
-            console.error('Error fetching your reviews:', error);
-            alert('Failed to fetch your reviews.');
-        });
-    }
-
-    function reviewsToYourRecipes() {
-        axios.get(`${api}/reviews-to-recipes`, {
-            headers: {
-                'Authorization': localStorage.getItem('token')
-            }
-        })
-        .then(response => {
-            alert(response.data.message);
-        })
-        .catch(error => {
-            console.error('Error fetching reviews:', error);
-            alert('Failed to fetch reviews.');
-        });
-    }
-
-    function follow() {
+function yourReviews() {
+    axios.get(`${api}/your-reviews`, {
+        headers: {
+            'Authorization': localStorage.getItem('token')
+        }
+    })
+    .then(response => {
         const contentBody = document.querySelector('.content-body');
-        contentBody.innerHTML = `
-            <button onclick="followers()">Followers</button>
-            <button onclick="following()">Following</button>
-        `;
-    }
+        contentBody.innerHTML = '<h3>Your Reviews</h3>';
+        let reviews = response.data.reviews;
 
-    function followers() {
-        axios.get(`${api}/followers`, {
-            headers: {
-                'Authorization': localStorage.getItem('token')
-            }
-        })
-        .then(response => {
-            alert(response.data.message);
-        })
-        .catch(error => {
-            console.error('Error fetching followers:', error);
-            alert('Failed to fetch followers.');
+        reviews.forEach(review => {
+            let reviewDiv = document.createElement('div');
+            reviewDiv.innerHTML = `
+                <h4>Recipe: ${review.Recipe.title}</h4>
+                <p>Rating: ${review.rating}</p>
+                <p>Comment: ${review.comment}</p>
+                <p>Reviewed by: ${review.User.name}</p>
+            `;
+            contentBody.appendChild(reviewDiv);
         });
-    }
-
-    function following() {
-        axios.get(`${api}/following`, {
-            headers: {
-                'Authorization': localStorage.getItem('token')
-            }
-        })
-        .then(response => {
-            alert(response.data.message);
-        })
-        .catch(error => {
-            console.error('Error fetching following:', error);
-            alert('Failed to fetch following.');
-        });
-    }
-
+    })
+    .catch(error => {
+        console.error('Error fetching your reviews:', error);
+        alert('Failed to fetch your reviews.');
+    });
+}
 function admin() {
         const contentBody = document.querySelector('.content-body');
         contentBody.innerHTML = `
@@ -297,7 +465,7 @@ function admin() {
     }
 function adminManageUsers() {
     const contentBody = document.querySelector('.content-body');
-    contentBody.innerHTML = ''; // Clear the content body
+    contentBody.innerHTML = ''; 
 
     axios.get(`${api1}/users`, {
         headers: {
@@ -329,7 +497,7 @@ function deleteUser(userId) {
     })
     .then((res) => {
         alert(res.data.message);
-        adminManageUsers(); // Reload users after deletion
+        adminManageUsers();
     })
     .catch((err) => {
         console.error("Error deleting user:", err);
@@ -370,7 +538,7 @@ function deleteRecipe(recipeId) {
     })
     .then((res) => {
         alert(res.data.message);
-        adminManageRecipes(); // Reload recipes after deletion
+        adminManageRecipes(); 
     })
     .catch((err) => {
         console.error("Error deleting recipe:", err);
