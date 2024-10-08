@@ -21,7 +21,7 @@ exports.forgotPassword = async (req, res) => {
 
         const forgotPasswordRequest = await ForgotPasswordRequest.create({ userId: user.id });
 
-        const resetUrl = `http://54.86.84.218:7000/password/resetpassword/${forgotPasswordRequest.id}`;
+        const resetUrl = `http://localhost:7000/password/resetpassword/${forgotPasswordRequest.id}`;
 
         var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{ "email": email }];

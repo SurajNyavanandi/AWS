@@ -1,0 +1,95 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #ffffff; /* White background */
+    color: #333333; /* Dark grey text */
+    padding: 20px;
+    line-height: 1.6;
+}
+
+h3 {
+    color: #000000; /* Black text for headings */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Form Styles */
+form {
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: #f0f0f0; /* Light grey form background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    color: #333333; /* Dark grey text for labels */
+    display: block;
+    margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    background-color: #ffffff; /* White input background */
+    border: 1px solid #cccccc; /* Light grey border */
+    border-radius: 4px;
+    color: #333333; /* Dark grey text */
+}
+
+input::placeholder {
+    color: #888888; /* Lighter grey for placeholder text */
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #333333; /* Dark grey button */
+    color: #ffffff; /* White button text */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #555555; /* Lighter grey on hover */
+}
+
+/* Link Styles */
+a {
+    color: #333333; /* Dark grey links */
+    text-decoration: none;
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+}
+
+a:hover {
+    color: #000000; /* Black on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    form {
+        padding: 15px;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+    }
+}

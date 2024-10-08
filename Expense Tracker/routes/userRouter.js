@@ -8,8 +8,6 @@ const router = express.Router();
 router.post('/signup', userController.createUser);
 router.post('/login',userController.createLogin);
 router.get('/download',verifyToken,expenseController.downloadExpense);
-
-
 router.post('/url', verifyToken,urlController.postUrl);
 router.get('/url',verifyToken,urlController.getUrls);
 

@@ -6,7 +6,7 @@ const router=express();
 router.post('/addexpense',verifyToken,expenseController.createExpense);
 router.get('/addexpense',verifyToken,expenseController.getExpenses);
 router.delete('/addexpense/:id',verifyToken,expenseController.deleteExpense);
-
+router.put('/addexpense/:id', verifyToken, expenseController.updateExpense);
 router.get('/expenses/daily', verifyToken, expenseController.getDailyExpenses);
 router.get('/expenses/monthly', verifyToken, expenseController.getMonthlyExpenses);
 router.get('/expenses/yearly', verifyToken, expenseController.getYearlyExpenses);

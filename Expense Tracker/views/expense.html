@@ -56,7 +56,7 @@
 
 <script>            
                                                                      //BASIC CODE-1 
-       let api=`http://54.86.84.218:7000/expense`;
+       let api=`http://localhost:7000/expense`;
        let cont=document.querySelector('#cont');
        //Post Expense
        function postExpense(event){
@@ -87,28 +87,28 @@
     let totalPages = 0;
     document.querySelector('#expenses-per-page').value = expensesPerPage;
 
-    function displayExpenses(page = 1) {
-        axios.get(`${api}/addexpense?page=${page}&limit=${expensesPerPage}`, {
-            headers: {
-                'Authorization': localStorage.getItem('token')
-            }
-        })
-        .then((res) => {
-            cont.innerHTML = '';
-            let arr = res.data.expenses;
-            totalPages = res.data.totalPages;
-            arr.forEach((expense, index) => {
-                let ic = document.createElement('li');
-                ic.innerHTML = `<span>${expense.amount}--${expense.description}--${expense.category}</span>
-                                <button onclick="deleteExpense('${expense.id}')">Delete</button>`;
-                cont.appendChild(ic);
-            });
-            updatePaginationInfo();
-        })
-        .catch((err) => {
-            console.log("Error displaying expenses", err);
+    function displayExpenses(page = 1) { 
+    axios.get(`${api}/addexpense?page=${page}&limit=${expensesPerPage}`, {
+        headers: { 'Authorization': localStorage.getItem('token') }
+    })
+    .then((res) => {
+        cont.innerHTML = '';
+        let arr = res.data.expenses;
+        totalPages = res.data.totalPages;
+        arr.forEach((expense, index) => {
+            let ic = document.createElement('li');
+            ic.innerHTML = `<span id="expense-${expense.id}">${expense.amount}--${expense.description}--${expense.category}</span>
+                            <button onclick="editExpense('${expense.id}','${expense.amount}','${expense.description}','${expense.category}')">Edit</button>
+                            <button onclick="saveExpense('${expense.id}')" style="display: none">Save</button>
+                            <button onclick="deleteExpense('${expense.id}')">Delete</button>`;
+            cont.appendChild(ic);
         });
-    }
+        updatePaginationInfo();
+    })
+    .catch((err) => {
+        console.log("Error displaying expenses", err);
+    });
+}
 
     function updatePaginationInfo() {
         const pageInfo = document.getElementById('page-info');
@@ -145,11 +145,49 @@
                     console.log("Error deleting expense",err);
                 })
        }
+       //Edit Expense  
+function editExpense(id, amount, description, category) {
+    const expenseElement = document.getElementById(`expense-${id}`);
+    expenseElement.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="number" id="edit-amount-${id}" value="${amount}" style="width: 100%; padding: 5px;" />
+            <input type="text" id="edit-description-${id}" value="${description}" style="width: 100%; padding: 5px;" />
+            <input type="text" id="edit-category-${id}" value="${category}" style="width: 100%; padding: 5px;" />
+        </div>
+    `;
+    const editButton = expenseElement.nextElementSibling;
+    editButton.style.display = "none";
+    editButton.nextElementSibling.style.display = "inline-block"; // Show Save button
+}
+
+
+
+    //Save Expense
+function saveExpense(id) {
+    const updatedExpense = {
+        amount: document.getElementById(`edit-amount-${id}`).value,
+        description: document.getElementById(`edit-description-${id}`).value,
+        category: document.getElementById(`edit-category-${id}`).value
+    };
+
+    axios.put(`${api}/addexpense/${id}`, updatedExpense, {
+        headers: { 'Authorization': localStorage.getItem('token') }
+    })
+    .then(() => {
+        console.log("Expense updated successfully");
+        displayExpenses();
+    })
+    .catch((err) => {
+        console.log("Error updating expense", err);
+    });
+}
+
        function clearInputs(){
         document.querySelector('#amount').value='';
         document.querySelector('#description').value='';
         document.querySelector('#category').value='';
        }
+
        function updateExpensesPerPage() {
             expensesPerPage = document.querySelector('#expenses-per-page').value;
             localStorage.setItem('expensesPerPage', expensesPerPage);
@@ -157,7 +195,7 @@
         }
 
                                                                              //PREMIUM CODE-2
-       let api2=`http://54.86.84.218:7000/premium`;
+       let api2=`http://localhost:7000/premium`;
        //PostOrder
        function buyPremium(event){
         event.preventDefault();
@@ -283,6 +321,9 @@
                      })
              }
 
+
+
+             
                                                        //DAILY MONTHLY YEARLY EXPENSES-4
     function dailyExpenses() {
         clearAllSections();
@@ -326,7 +367,7 @@
     }  
 
                                                           //DOWNLOADING FILE FROM AWS-5
-    let api3=`http://54.86.84.218:7000/user`;
+    let api3=`http://localhost:7000/user`;
     function downloadExpense(){
            axios.get(`${api3}/download`,{
                 headers:{

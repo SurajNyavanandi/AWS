@@ -1,9 +1,11 @@
 const Expense = require('../models/expenseModel');
 const User = require('../models/userModel');
 const sequelize = require('../config/database');
+const { Op } = require('sequelize');
+
 const { getExpenses } = require('../services/userService'); 
 const uploadToS3 = require('../services/S3service');
-const { Op } = require('sequelize');
+
 
 exports.createExpense=async(req,res)=>{
        const t=await sequelize.transaction();
@@ -25,6 +27,58 @@ exports.createExpense=async(req,res)=>{
        return res.status(500).json({Error:'Error creating expense'}); 
     }
 };
+exports.deleteExpense=async(req,res)=>{
+    const t = await sequelize.transaction();
+    try {
+        const userId=req.userId;//via middleware
+        const id=req.params.id;
+
+        const user=await User.findOne({where:{id:userId}},{ transaction: t });
+        const expense=await Expense.findOne({where:{id:id}}, { transaction: t })
+        if(expense){
+            user.totalAmount=Number(user.totalAmount)-Number(expense.amount);
+            await user.save({ transaction: t });
+            await Expense.destroy({where:{id:id}}, { transaction: t });
+        } 
+        await t.commit(); 
+        return res.status(204).json();
+    } catch (error) {
+        await t.rollback();
+        return res.status(500).json({Error:'Error deleting expense'});
+    }
+}
+exports.updateExpense = async (req, res) => {
+    const t = await sequelize.transaction();
+    try {
+        const userId = req.userId;
+        const { id } = req.params;
+        const { amount, description, category } = req.body;
+
+        const expense = await Expense.findOne({ where: { id, userId } }, { transaction: t });
+
+        if (expense) {
+            expense.amount = amount;
+            expense.description = description;
+            expense.category = category;
+            await expense.save({ transaction: t });
+
+            const user = await User.findOne({ where: { id: userId } }, { transaction: t });
+            const totalAmountDifference = amount - expense.amount;
+            user.totalAmount = Number(user.totalAmount) + totalAmountDifference;
+            await user.save({ transaction: t });
+
+            await t.commit();
+            return res.status(200).json(expense);
+        }
+
+        await t.rollback();
+        return res.status(404).json({ Error: 'Expense not found' });
+    } catch (error) {
+        await t.rollback();
+        return res.status(500).json({ Error: 'Error updating expense' });
+    }
+};
+
 exports.getExpenses = async (req, res) => {
     try {
         const userId = req.userId;
@@ -48,26 +102,7 @@ exports.getExpenses = async (req, res) => {
         return res.status(500).json({ Error: 'Error getting expenses' });
     }
 };
-exports.deleteExpense=async(req,res)=>{
-    const t = await sequelize.transaction();
-    try {
-        const userId=req.userId;//via middleware
-        const id=req.params.id;
 
-        const user=await User.findOne({where:{id:userId}},{ transaction: t });
-        const expense=await Expense.findOne({where:{id:id}}, { transaction: t })
-        if(expense){
-            user.totalAmount=Number(user.totalAmount)-Number(expense.amount);
-            await user.save({ transaction: t });
-            await Expense.destroy({where:{id:id}}, { transaction: t });
-        } 
-        await t.commit(); 
-        return res.status(204).json();
-    } catch (error) {
-        await t.rollback();
-        return res.status(500).json({Error:'Error deleting expense'});
-    }
-}
 exports.getDailyExpenses = async (req, res) => {
     try {
         const userId = req.userId;
@@ -138,5 +173,3 @@ exports.downloadExpense = async (req, res) => {
         return res.status(500).json({ Error: 'Error downloading expense file' });
     }
 };
-
-
