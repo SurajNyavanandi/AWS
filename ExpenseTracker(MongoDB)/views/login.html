@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style1.css">
 
 </head>
 <body>
@@ -16,14 +16,14 @@
       <input type="password" name="password" id="password" placeholder="********" required>
       <button type="submit">Login</button>
     </form>    
-    <a href="http://54.86.84.218:7000/password"><button>Forgot Password</button></a>
-    <a href="http://54.86.84.218:7000/signup">New User ---Sign Up</a>
+    <a href="http://localhost:7000/password"><button>Forgot Password</button></a>
+    <a href="http://localhost:7000/signup">New User ---Sign Up</a>
     <div id="cont"></div>
 
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
 <script>
-    let api='http://54.86.84.218:7000/user';
+    let api='http://localhost:7000/user';
     let cont=document.querySelector('#cont');
   
      function postLogin(event){
@@ -41,7 +41,7 @@
             localStorage.setItem('token',res.data.token); 
             localStorage.setItem('isPremium',res.data.isPremium);  
             if(res.status===200){
-                window.location.href=`http://54.86.84.218:7000/addexpense`;
+                window.location.href=`http://localhost:7000/addexpense`;
             }
          })
          .catch((err)=>{

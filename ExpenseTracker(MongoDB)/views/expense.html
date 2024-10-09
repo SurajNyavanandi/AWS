@@ -56,7 +56,7 @@
 
 <script>            
                                                                      //BASIC CODE-1 
-       let api=`http://54.86.84.218:7000/expense`;
+       let api=`http://localhost:7000/expense`;
        let cont=document.querySelector('#cont');
        //Post Expense
        function postExpense(event){
@@ -100,7 +100,7 @@
             arr.forEach((expense, index) => {
                 let ic = document.createElement('li');
                 ic.innerHTML = `<span>${expense.amount}--${expense.description}--${expense.category}</span>
-                                <button onclick="deleteExpense('${expense.id}')">Delete</button>`;
+                                <button onclick="deleteExpense('${expense._id}')">Delete</button>`;
                 cont.appendChild(ic);
             });
             updatePaginationInfo();//Updating Value In Local Storage
@@ -145,6 +145,7 @@
                     console.log("Error deleting expense",err);
                 })
        }
+
        function clearInputs(){
         document.querySelector('#amount').value='';
         document.querySelector('#description').value='';
@@ -157,7 +158,7 @@
         }
 
                                                                              //PREMIUM CODE-2
-       let api2=`http://54.86.84.218:7000/premium`;
+       let api2=`http://localhost:7000/premium`;
        //PostOrder
        function buyPremium(event){
         event.preventDefault();
@@ -292,20 +293,18 @@
         document.querySelector('#cont4').scrollIntoView({ behavior: 'smooth' }); 
         fetchExpenses('daily');
     }
-
     function monthlyExpenses() {
         clearAllSections();
         document.querySelector('#cont4').scrollIntoView({ behavior: 'smooth' }); 
         fetchExpenses('monthly');
     }
-
     function yearlyExpenses() {
         clearAllSections();
         document.querySelector('#cont4').scrollIntoView({ behavior: 'smooth' }); 
         fetchExpenses('yearly');
     }
-
-    function fetchExpenses(period) {
+    let cont4 = document.querySelector('#cont4');
+    function fetchExpenses(period) {  
         let url = `${api}/expenses/${period}`;
         axios.get(url, {
             headers: {
@@ -317,9 +316,12 @@
                 cont4.innerHTML = `<h4 style="text-align: center;">${period.toUpperCase()} Expenses</h4>`;
 
                 let arr = res.data;
+                console.log("res",res);
+                
                 arr.forEach((expense, index) => {
                     let ic = document.createElement('li');
-                    ic.innerHTML = `<span>${index + 1}. ${new Date(expense.createdAt).toLocaleString()} -- ${expense.amount} -- ${expense.description} -- ${expense.category}}</span>`;
+                     ic.innerHTML = `<span>${index + 1}. ${new Date(expense.createdAt).toLocaleString()} -- ${expense.amount} -- ${expense.description} -- ${expense.category}}</span>`;
+                    //ic.innerHTML = `<span> ${expense.amount} -- ${expense.description} -- ${expense.category}}</span>`;
                     cont4.appendChild(ic);
                 });
             })
@@ -329,7 +331,7 @@
     }  
 
                                                           //DOWNLOADING FILE FROM AWS-5
-    let api3=`http://54.86.84.218:7000/user`;
+    let api3=`http://localhost:7000/user`;
     function downloadExpense(){
            axios.get(`${api3}/download`,{
                 headers:{

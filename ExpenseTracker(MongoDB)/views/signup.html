@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SignUp</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style1.css">
 </head>
 <body>
     <h3>SignUp</h3>
@@ -17,12 +17,12 @@
         <input type="password" name="password" id="password" placeholder="********" required>
         <button type="submit">SignUp</button>
     </form>
-    <a href="http://54.86.84.218:7000/login">Existing User---Login</a>
+    <a href="http://localhost:7000/login">Existing User---Login</a>
     <div id="cont"></div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
 <script>
-    const api = 'http://54.86.84.218:7000/user';
+    const api = 'http://localhost:7000/user';
     const cont = document.querySelector('#cont');
     
     function postSignUp(event) {
@@ -41,7 +41,7 @@
                 clearInputs();
               //  alert("Signup Successful");
                 if(res.status===201){
-                window.location.href=`http://54.86.84.218:7000/login`;
+                window.location.href=`http://localhost:7000/login`;
                }
             })
             .catch(err => {

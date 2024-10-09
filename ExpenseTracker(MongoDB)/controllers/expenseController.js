@@ -28,27 +28,27 @@ exports.createExpense = async (req, res) => {
         return res.status(500).json({ Error: 'Error creating expense' });
     }
 };
-
 exports.deleteExpense = async (req, res) => {
     try {
         const userId = req.userId;
         const id = req.params.id;
 
         const user = await User.findById(userId);
-        const expense = await Expense.findById(id);
+        const expense = await Expense.findOne({ _id: id, userId });  
 
-        if (expense) {
-            user.totalAmount = Number(user.totalAmount) - Number(expense.amount);
-            await user.save();
-            await Expense.deleteOne({ _id: id });
+        if (!expense) {
+            return res.status(404).json({ error: 'Expense not found' });
         }
 
-        return res.status(204).json();
+        user.totalAmount = Number(user.totalAmount) - Number(expense.amount);
+        await user.save();
+        await Expense.deleteOne({ _id: id });
+
+        return res.status(204).json(); 
     } catch (error) {
         return res.status(500).json({ Error: 'Error deleting expense' });
     }
 };
-
 exports.getExpenses = async (req, res) => {
     try {
         const userId = req.userId;
@@ -56,12 +56,12 @@ exports.getExpenses = async (req, res) => {
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const expenses = await Expense.find({ userId: userId })
+        const expenses = await Expense.find({ userId })
             .limit(limit)
             .skip(skip)
             .sort({ createdAt: -1 });
 
-        const totalCount = await Expense.countDocuments({ userId: userId });
+        const totalCount = await Expense.countDocuments({ userId });
 
         return res.status(200).json({
             expenses,
@@ -69,10 +69,9 @@ exports.getExpenses = async (req, res) => {
             currentPage: page
         });
     } catch (error) {
-        return res.status(500).json({ Error: 'Error getting expenses' });
+        return res.status(500).json({ Error: 'Error fetching expenses' });
     }
 };
-
 exports.getDailyExpenses = async (req, res) => {
     try {
         const userId = req.userId;
@@ -83,13 +82,12 @@ exports.getDailyExpenses = async (req, res) => {
             userId: userId,
             createdAt: { $gte: startOfDay, $lt: endOfDay }
         });
-
+        console.log('Expenses found:', expenses);
         return res.status(200).json(expenses);
     } catch (error) {
         return res.status(500).json({ Error: 'Error fetching daily expenses' });
     }
 };
-
 exports.getMonthlyExpenses = async (req, res) => {
     try {
         const userId = req.userId;
@@ -106,7 +104,6 @@ exports.getMonthlyExpenses = async (req, res) => {
         return res.status(500).json({ Error: 'Error fetching monthly expenses' });
     }
 };
-
 exports.getYearlyExpenses = async (req, res) => {
     try {
         const userId = req.userId;
@@ -123,7 +120,6 @@ exports.getYearlyExpenses = async (req, res) => {
         return res.status(500).json({ Error: 'Error fetching yearly expenses' });
     }
 };
-
 exports.downloadExpense = async (req, res) => {
     try {
         const userId = req.userId;

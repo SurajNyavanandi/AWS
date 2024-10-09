@@ -7,6 +7,7 @@ const premiumRoute = require('./routes/premiumRouter');
 const passwordRoute = require('./routes/passwordRouter');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
@@ -36,7 +37,15 @@ app.get('/password/resetpassword/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'views', 'resetpassword.html'));
 });
 
-// Connect to MongoDB
-connectDB();
-
-app.listen(7000, () => console.log("Server running on http://54.86.84.218:7000/signup"));
+const startServer = async () => {
+    try {
+        await connectDB();
+        console.log("MongoDB Connected");
+        //await mongoose.connection.db.dropDatabase();
+        //console.log('Database dropped');
+        app.listen(7000, () => console.log("Server running on http://localhost:7000/signup"));
+    } catch (error) {
+        console.error("Error occurred:", error);
+    }
+};
+startServer();
