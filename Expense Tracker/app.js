@@ -40,6 +40,7 @@ app.get('/password/resetpassword/:id', (req, res) => {
 sequelize.sync()
     .then(() => {
         console.log("Database Connected");
-        app.listen(7000, () => console.log("Server running on http://localhost:7000/signup"));
+        app.listen(7000, () => console.log("Server running on http://18.207.193.144/signup"));
     })
     .catch(err => console.log("Database Not-Connected", err));
+
