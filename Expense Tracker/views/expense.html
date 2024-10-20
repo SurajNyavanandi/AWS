@@ -56,7 +56,7 @@
 
 <script>            
                                                                      //BASIC CODE-1 
-       let api=`http://18.207.193.144/expense`;
+       let api=`http://18.207.193.144:7000/expense`;
        let cont=document.querySelector('#cont');
        //Post Expense
        function postExpense(event){
@@ -195,7 +195,7 @@ function saveExpense(id) {
         }
 
                                                                              //PREMIUM CODE-2
-       let api2=`http://18.207.193.144/premium`;
+       let api2=`http://18.207.193.144:7000/premium`;
        //PostOrder
        function buyPremium(event){
         event.preventDefault();
@@ -367,7 +367,7 @@ function saveExpense(id) {
     }  
 
                                                           //DOWNLOADING FILE FROM AWS-5
-    let api3=`http://18.207.193.144/user`;
+    let api3=`http://18.207.193.144:7000/user`;
     function downloadExpense(){
            axios.get(`${api3}/download`,{
                 headers:{
